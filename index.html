@@ -12,11 +12,32 @@
   h1 { font-size: 1.8em; }
   p { color: #6e6e73; }
   a { color: #0A66C2; font-weight: 600; text-decoration: none; display: inline-block; margin: 8px 14px; }
+  /* Bouton App Store : noir arrondi, lisible sur mobile comme sur écran large */
+  .appstore { background: #1c1c1e; color: #fff; padding: 14px 26px; border-radius: 12px;
+              font-size: 1.05em; margin: 22px 0 10px; }
+  .appstore:hover { background: #000; }
+  /* Galerie de captures : 4 colonnes sur grand écran... */
+  .captures { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 12px 0 18px; }
+  .captures img { width: 100%; height: auto; border-radius: 12px; border: 1px solid #e3e3e6; }
+  /* ...et une bande qui défile au doigt sur téléphone (les marges négatives
+     annulent le padding du body pour un défilement pleine largeur). */
+  @media (max-width: 600px) {
+    .captures { display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+                margin: 0 -20px; padding: 12px 20px 18px; }
+    .captures img { flex: 0 0 62%; scroll-snap-align: center; }
+  }
 </style>
 </head>
 <body>
 <h1>🚴❄️ CycloApp</h1>
 <p>L'état de déblaiement des rues, par et pour les cyclistes hivernaux du Québec.</p>
+<p><a class="appstore" href="https://apps.apple.com/ca/app/id6787484807">Télécharger sur l'App Store</a></p>
+<div class="captures">
+  <img src="images/capture-fr-1.jpg" width="552" height="1200" loading="lazy" alt="Carte de Montréal avec les signalements de déblaiement et la météo du jour">
+  <img src="images/capture-fr-2.jpg" width="552" height="1200" loading="lazy" alt="Un itinéraire tracé sur la carte, avec les photos prises le long du chemin">
+  <img src="images/capture-fr-3.jpg" width="552" height="1200" loading="lazy" alt="Photo d'une piste cyclable déblayée, signalée il y a une minute">
+  <img src="images/capture-fr-4.jpg" width="552" height="1200" loading="lazy" alt="Photo d'un trottoir non déblayé après une bordée de neige">
+</div>
 <p>
   <a href="confidentialite.html">Politique de confidentialité</a>
   <a href="conditions.html">Conditions d'utilisation</a>
