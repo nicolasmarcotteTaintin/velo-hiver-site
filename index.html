@@ -16,6 +16,18 @@
   .appstore { background: #1c1c1e; color: #fff; padding: 14px 26px; border-radius: 12px;
               font-size: 1.05em; margin: 22px 0 10px; }
   .appstore:hover { background: #000; }
+  /* Bloc « Android » : l'app n'est pas encore publique sur Google Play (test
+     fermé). Google n'envoie AUCUNE invitation automatique : on recueille ici
+     l'adresse du compte Google, qui est ajoutée à la liste des testeurs, et
+     le lien de participation part ensuite à la main. */
+  .android { background: #E8F0FB; border-radius: 14px; padding: 24px 22px 10px;
+             margin: 26px 0 6px; text-align: left; }
+  .android h2 { font-size: 1.15em; margin: 0 0 10px; }
+  .android p { margin: 0 0 14px; color: #4a4a4f; }
+  .android .cta { background: #0A66C2; color: #fff; padding: 12px 22px;
+                  border-radius: 12px; margin: 0 0 14px; }
+  .android .cta:hover { background: #08529c; }
+  .android .fine { font-size: 0.9em; color: #6e6e73; }
   /* Galerie de captures : 4 colonnes sur grand écran... */
   .captures { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 12px 0 18px; }
   .captures img { width: 100%; height: auto; border-radius: 12px; border: 1px solid #e3e3e6; }
@@ -32,6 +44,12 @@
 <h1>🚴❄️ CycloApp</h1>
 <p>L'état du déneigement des rues, par et pour les cyclistes, de Québec, Granby, Montréal, Sherbrooke et Gatineau.</p>
 <p><a class="appstore" href="https://apps.apple.com/ca/app/id6787484807">Télécharger sur l'App Store</a></p>
+<section class="android">
+  <h2>🤖 Tu roules avec un Android ?</h2>
+  <p>La version Android existe : elle est en <strong>test fermé</strong> sur Google Play, le temps de la roder avec un petit groupe de cyclistes. Tu peux en faire partie — écris-moi et je t'ajoute à la liste.</p>
+  <p><a class="cta" href="mailto:contact@cycloapp.ca?subject=Testeur%20Android%20CycloApp&amp;body=Bonjour%20!%0A%0AJe%20veux%20essayer%20CycloApp%20sur%20Android.%0A%0AMon%20adresse%20de%20compte%20Google%20(celle%20utilisée%20sur%20mon%20téléphone)%20:%20%0A%0AMerci%20!">Devenir testeur Android</a></p>
+  <p class="fine">Donne bien l'adresse du <strong>compte Google utilisé sur ton téléphone</strong> : c'est elle, et elle seule, qui ouvre l'accès au test. Tu recevras ensuite un lien pour rejoindre le test ; une fois accepté, CycloApp s'installe depuis le Play&nbsp;Store comme n'importe quelle autre application, et se met à jour toute seule.</p>
+</section>
 <div class="captures">
   <img src="images/capture-fr-1.jpg" width="552" height="1200" loading="lazy" alt="Carte de Montréal avec les signalements de déblaiement et la météo du jour">
   <img src="images/capture-fr-2.jpg" width="552" height="1200" loading="lazy" alt="Un itinéraire tracé sur la carte, avec les photos prises le long du chemin">
