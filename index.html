@@ -28,6 +28,20 @@
                   border-radius: 12px; margin: 0 0 14px; }
   .android .cta:hover { background: #08529c; }
   .android .fine { font-size: 0.9em; color: #6e6e73; }
+  .android form { margin: 0 0 6px; }
+  .android input { font: inherit; width: 100%; box-sizing: border-box; padding: 12px 14px;
+                   border: 1px solid #c9d6e8; border-radius: 10px; background: #fff;
+                   color: #1c1c1e; margin-bottom: 10px; }
+  .android input:focus { outline: 2px solid #0A66C2; outline-offset: 1px; border-color: #0A66C2; }
+  .android button { font: inherit; font-weight: 600; cursor: pointer; border: 0;
+                    background: #0A66C2; color: #fff; padding: 12px 22px; border-radius: 12px; }
+  .android button:hover { background: #08529c; }
+  .android button[disabled] { background: #8fb4dc; cursor: default; }
+  /* Piège à robots : invisible et hors du parcours au clavier. */
+  .android .piege { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  .android .etat { margin: 12px 0 0; font-size: 0.95em; min-height: 1.2em; }
+  .android .etat.ok { color: #1a7f3c; font-weight: 600; }
+  .android .etat.ko { color: #b3261e; font-weight: 600; }
   /* Galerie de captures : 4 colonnes sur grand écran... */
   .captures { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 12px 0 18px; }
   .captures img { width: 100%; height: auto; border-radius: 12px; border: 1px solid #e3e3e6; }
@@ -46,8 +60,15 @@
 <p><a class="appstore" href="https://apps.apple.com/ca/app/id6787484807">Télécharger sur l'App Store</a></p>
 <section class="android">
   <h2>🤖 Tu roules avec un Android ?</h2>
-  <p>La version Android existe : elle est en <strong>test fermé</strong> sur Google Play, le temps de la roder avec un petit groupe de cyclistes. Tu peux en faire partie — écris-moi et je t'ajoute à la liste.</p>
-  <p><a class="cta" href="mailto:contact@cycloapp.ca?subject=Testeur%20Android%20CycloApp&amp;body=Bonjour%20!%0A%0AJe%20veux%20essayer%20CycloApp%20sur%20Android.%0A%0AMon%20adresse%20de%20compte%20Google%20(celle%20utilisée%20sur%20mon%20téléphone)%20:%20%0A%0AMerci%20!">Devenir testeur Android</a></p>
+  <p>La version Android existe : elle est en <strong>test fermé</strong> sur Google Play, le temps de la roder avec un petit groupe de cyclistes. Tu peux en faire partie : laisse-moi ton adresse et je t'ajoute à la liste.</p>
+  <form id="form-android">
+    <label class="piege" aria-hidden="true">Ne pas remplir<input name="site" tabindex="-1" autocomplete="off"></label>
+    <input name="courriel" type="email" required autocomplete="email" inputmode="email"
+           placeholder="Ton adresse de compte Google" aria-label="Adresse de compte Google">
+    <input name="nom" type="text" autocomplete="name" placeholder="Ton nom (facultatif)" aria-label="Ton nom (facultatif)">
+    <button type="submit">Devenir testeur Android</button>
+  </form>
+  <p class="etat" id="etat-android" role="status" aria-live="polite"></p>
   <p class="fine">Donne bien l'adresse du <strong>compte Google utilisé sur ton téléphone</strong> : c'est elle, et elle seule, qui ouvre l'accès au test. Tu recevras ensuite un lien pour rejoindre le test ; une fois accepté, CycloApp s'installe depuis le Play&nbsp;Store comme n'importe quelle autre application, et se met à jour toute seule.</p>
 </section>
 <div class="captures">
@@ -63,5 +84,47 @@
 </p>
 <p>Contact : <a href="mailto:contact@cycloapp.ca">contact@cycloapp.ca</a></p>
 <p><a href="en/index.html">English</a></p>
+<script>var T = {
+  langue: 'fr',
+  envoi: 'Envoi en cours…',
+  merci: 'Merci ! Je t\'ajoute à la liste et tu recevras le lien de participation par courriel.',
+  erreur: 'L\'envoi a échoué. Écris-moi directement à <a href="mailto:contact@cycloapp.ca">contact@cycloapp.ca</a>.',
+};</script>
+<script>
+// Formulaire « testeur Android » : envoie l'adresse à une fonction Supabase, qui
+// relaie par courriel (Resend). Aucun secret ici — la clé Supabase publique est
+// celle qui vit déjà dans l'application mobile, prévue pour être publique.
+(function () {
+  var f = document.getElementById('form-android');
+  if (!f) return;
+  var etat = document.getElementById('etat-android');
+  var bouton = f.querySelector('button');
+  f.addEventListener('submit', function (e) {
+    e.preventDefault();
+    etat.className = 'etat';
+    etat.textContent = T.envoi;
+    bouton.disabled = true;
+    fetch('https://mytcxzitmwonqsofaejb.supabase.co/functions/v1/testeur-android', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15dGN4eml0bXdvbnFzb2ZhZWpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMTUxMTcsImV4cCI6MjA5ODY5MTExN30.28V3aHmAVC2NcirzBsy_A2_iogd11ioGiTIrTTyc6nU', apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15dGN4eml0bXdvbnFzb2ZhZWpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMTUxMTcsImV4cCI6MjA5ODY5MTExN30.28V3aHmAVC2NcirzBsy_A2_iogd11ioGiTIrTTyc6nU' },
+      body: JSON.stringify({
+        courriel: f.courriel.value, nom: f.nom.value, site: f.site.value, langue: T.langue,
+      }),
+    })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (res) {
+        if (!res.ok || !res.j.ok) throw new Error('refus');
+        etat.className = 'etat ok';
+        etat.textContent = T.merci;
+        f.reset();
+      })
+      .catch(function () {
+        etat.className = 'etat ko';
+        etat.innerHTML = T.erreur;
+        bouton.disabled = false;
+      });
+  });
+})();
+</script>
 </body>
 </html>
