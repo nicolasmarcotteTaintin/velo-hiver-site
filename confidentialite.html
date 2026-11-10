@@ -19,7 +19,7 @@
 </head>
 <body>
 <h1>Politique de confidentialité</h1>
-<p class="date">CycloApp — en vigueur le 7 juillet 2026</p>
+<p class="date">CycloApp — en vigueur le 7 juillet 2026, mise à jour le 9 novembre 2026</p>
 
 <p>CycloApp est une application communautaire qui aide les cyclistes hivernaux du Québec à
 connaître l'état de déblaiement des rues. Cette politique explique quelles données nous
@@ -33,7 +33,11 @@ recueillons, pourquoi, et ce que tu peux en faire.</p>
   <li><strong>Compte</strong> : adresse courriel, nom d'utilisateur, mot de passe (chiffré), ville choisie.</li>
   <li><strong>Itinéraires</strong> : les tracés géographiques que tu dessines. Ils sont <strong>privés</strong> — visibles par toi seulement.</li>
   <li><strong>Signalements de déblaiement</strong> : position GPS, état choisi, date et heure. Visibles par les autres utilisateurs de ta ville.</li>
-  <li><strong>Photos</strong> : les photos que tu joins à un signalement, avec leur position. Visibles par les autres utilisateurs de ta ville.</li>
+  <li><strong>Photos</strong> : les photos que tu joins à un signalement, avec leur position. Visibles par les autres utilisateurs de ta ville.
+      Chaque photo envoyée est analysée automatiquement par Claude, l'intelligence artificielle d'Anthropic,
+      pour écarter les contenus inappropriés. Les photos prises par le mode « Photos automatiques » restent
+      sur ton téléphone jusqu'à ce que tu les tries : seules celles que tu choisis d'envoyer quittent ton
+      téléphone, et Claude y repère alors la piste cyclable pour recadrer la photo.</li>
   <li><strong>Données d'utilisation</strong> : événements d'usage de l'app (écrans consultés, fonctionnalités utilisées), liés à un identifiant de compte, pour améliorer l'application (PostHog).</li>
   <li><strong>Rapports d'erreur</strong> : informations techniques en cas de plantage (Sentry), pour corriger les bogues.</li>
 </ul>
@@ -46,9 +50,10 @@ recueillons, pourquoi, et ce que tu peux en faire.</p>
 </ul>
 
 <h2>Où sont stockées les données</h2>
-<p>Les données sont hébergées par nos sous-traitants techniques : Supabase (base de données et
-photos), PostHog (données d'utilisation), Sentry (rapports d'erreur) et Resend (courriels de
-service). Leurs serveurs sont situés aux États-Unis.</p>
+<p>Les données sont hébergées ou traitées par nos sous-traitants techniques : Supabase (base de
+données et photos), Anthropic (analyse automatique des photos envoyées par l'IA Claude), PostHog
+(données d'utilisation), Sentry (rapports d'erreur) et Resend (courriels de service). Leurs
+serveurs sont situés aux États-Unis.</p>
 
 <h2>Conservation et suppression</h2>
 <ul>

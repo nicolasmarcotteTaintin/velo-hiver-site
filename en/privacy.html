@@ -19,7 +19,7 @@
 </head>
 <body>
 <h1>Privacy Policy</h1>
-<p class="date">CycloApp — in effect July 7, 2026</p>
+<p class="date">CycloApp — in effect July 7, 2026, updated November 9, 2026</p>
 
 <p>CycloApp is a community app that helps Québec's winter cyclists know the snow-clearing
 state of the streets. This policy explains what data we collect, why, and what you can
@@ -33,7 +33,11 @@ do about it.</p>
   <li><strong>Account</strong>: email address, username, password (encrypted), chosen city.</li>
   <li><strong>Routes</strong>: the geographic paths you draw. They are <strong>private</strong> — visible to you only.</li>
   <li><strong>Snow-clearing reports</strong>: GPS position, chosen status, date and time. Visible to other users in your city.</li>
-  <li><strong>Photos</strong>: the photos you attach to a report, with their location. Visible to other users in your city.</li>
+  <li><strong>Photos</strong>: the photos you attach to a report, with their location. Visible to other users in your city.
+      Every photo you send is automatically analyzed by Claude, Anthropic's artificial intelligence,
+      to filter out inappropriate content. Photos taken in “Automatic photos” mode stay on your phone
+      until you sort them: only the ones you choose to send leave your phone, and Claude then locates
+      the bike lane in them to crop the photo.</li>
   <li><strong>Usage data</strong>: app usage events (screens viewed, features used), linked to an account identifier, to improve the app (PostHog).</li>
   <li><strong>Crash reports</strong>: technical information when the app crashes (Sentry), to fix bugs.</li>
 </ul>
@@ -46,9 +50,10 @@ do about it.</p>
 </ul>
 
 <h2>Where data is stored</h2>
-<p>Data is hosted by our technical service providers: Supabase (database and photos),
-PostHog (usage data), Sentry (crash reports) and Resend (service emails). Their servers
-are located in the United States.</p>
+<p>Data is hosted or processed by our technical service providers: Supabase (database and
+photos), Anthropic (automatic analysis of the photos you send, by the Claude AI), PostHog
+(usage data), Sentry (crash reports) and Resend (service emails). Their servers are located
+in the United States.</p>
 
 <h2>Retention and deletion</h2>
 <ul>
