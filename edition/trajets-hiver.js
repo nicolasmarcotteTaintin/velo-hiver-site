@@ -229,7 +229,9 @@
     });
   }
 
-  var COLONNES = 'id,region_id,nom,etat,note,controle,points,distance_m,etat_depuis,modifie_le';
+  // `source` (migration 0040, appliquée le 2026-11-12) : sans elle en base, la
+  // lecture échouerait (42703).
+  var COLONNES = 'id,region_id,nom,etat,note,controle,points,distance_m,etat_depuis,modifie_le,source';
   var api = {
     verifierCle: function (cle) {
       return appeler('/rest/v1/rpc/trajets_hiver_verifier_cle', { p_cle: cle });
@@ -753,28 +755,33 @@
       })
     );
 
+    // En-tête compact (2026-11-12, demande de Nicolas : voir plus de trajets
+    // dans la colonne) : la ville et « + Nouveau » sur la même rangée.
     panneau.appendChild(el('h1', {}, ['Trajets d’hiver']));
-    panneau.appendChild(el('div', { class: 'entete' }, [choixVille]));
     panneau.appendChild(
-      el('p', { class: 'discret' }, [
-        'Clé : ' + S.porteur + (S.villeCle ? ' (' + ville.nom + ' seulement)' : '') + ' · ',
-        el('button', { type: 'button', class: 'lien', onclick: oublierCle }, ['Oublier la clé']),
+      el('div', { class: 'entete' }, [
+        choixVille,
+        el(
+          'button',
+          {
+            type: 'button',
+            class: 'bouton primaire',
+            disabled: S.trajets.length >= MAX_TRAJETS,
+            title: S.trajets.length >= MAX_TRAJETS ? MAX_TRAJETS + ' trajets au plus par ville' : 'Dessiner un nouveau trajet',
+            onclick: function () {
+              commencerEdition(null);
+            },
+          },
+          ['+ Nouveau']
+        ),
       ])
     );
-
     panneau.appendChild(
-      el(
-        'button',
-        {
-          type: 'button',
-          class: 'bouton primaire large',
-          disabled: S.trajets.length >= MAX_TRAJETS,
-          onclick: function () {
-            commencerEdition(null);
-          },
-        },
-        ['+ Nouveau trajet']
-      )
+      el('p', { class: 'discret cle' }, [
+        'Clé : ' + S.porteur + (S.villeCle ? ' (' + ville.nom + ' seulement)' : '') + ' · ',
+        el('button', { type: 'button', class: 'lien', onclick: oublierCle }, ['Oublier la clé']),
+        S.trajets.length ? ' · ' + S.trajets.length + ' / ' + MAX_TRAJETS + ' trajets' : '',
+      ])
     );
 
     if (S.trajets.length === 0) {
@@ -789,6 +796,9 @@
     S.trajets.forEach(function (t) {
       var info = infoEtat(t.etat);
       liste.appendChild(
+        // Une fiche en trois ou quatre rangées : le nom ; « depuis » et la
+        // distance ; la note (deux lignes, entière quand le trajet est choisi) ;
+        // les trois états avec « Modifier » à côté.
         el('li', { class: 'trajet' + (t.id === S.choisi ? ' choisi' : ''), 'data-trajet': t.id }, [
           el('div', { class: 'haut' }, [
             el('span', { class: 'pastille', style: 'background:' + info.couleur }),
@@ -804,23 +814,39 @@
               },
               [t.nom]
             ),
-            el('span', { class: 'km' }, [formatDistance(t.distance_m)]),
           ]),
-          el('div', { class: 'discret' }, [formatDepuis(t)]),
-          t.note ? el('div', { class: 'note' }, [t.note]) : null,
-          boutonsEtats(
-            t.etat,
-            function (etat) {
-              changerEtat(t, etat);
-            },
-            !!S.enCours[t.id]
-          ),
-          el('div', { class: 'actions' }, [
+          el('div', { class: 'discret infos-trajet' }, [
+            formatDepuis(t) + ' · ' + formatDistance(t.distance_m),
+            // Relié à une source officielle (migration 0040) : l'état se met à
+            // jour tout seul ; un changement fait ici tient jusqu'au prochain
+            // changement chez la source.
+            t.source
+              ? el(
+                  'span',
+                  {
+                    class: 'auto',
+                    title:
+                      'État mis à jour automatiquement d’après une source officielle. Un changement fait ici tient jusqu’au prochain changement chez la source.',
+                  },
+                  ['auto']
+                )
+              : null,
+          ]),
+          t.note ? el('div', { class: 'note', title: t.note }, [t.note]) : null,
+          el('div', { class: 'rangee-etats' }, [
+            boutonsEtats(
+              t.etat,
+              function (etat) {
+                changerEtat(t, etat);
+              },
+              !!S.enCours[t.id]
+            ),
             el(
               'button',
               {
                 type: 'button',
-                class: 'bouton',
+                class: 'bouton modifier',
+                title: 'Modifier le tracé, le nom ou la note',
                 onclick: function () {
                   commencerEdition(t);
                 },

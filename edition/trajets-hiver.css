@@ -67,8 +67,10 @@ button[disabled] { cursor: default; opacity: 0.5; }
 .bouton.large { width: 100%; padding: 11px 14px; }
 .lien { border: 0; background: none; padding: 0; color: var(--bleu); font-weight: 600; }
 
-.entete { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.entete select { flex: 1; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--trait); background: var(--carte); }
+.entete { display: flex; align-items: center; gap: 8px; margin: 6px 0 4px; }
+.entete select { flex: 1; min-width: 0; padding: 7px 10px; border-radius: 10px; border: 1px solid var(--trait); background: var(--carte); }
+.entete .bouton { padding: 7px 12px; white-space: nowrap; }
+.discret.cle { margin: 0 0 2px; }
 
 /* Les trois états, ou les deux outils : une rangée de boutons collés. */
 .segmente { display: flex; border: 1px solid var(--trait); border-radius: 10px; overflow: hidden; background: var(--carte); }
@@ -83,20 +85,30 @@ button[disabled] { cursor: default; opacity: 0.5; }
 .segmente button[data-etat="ferme"][aria-pressed="true"] { background: var(--ferme); }
 .segmente button[data-outil][aria-pressed="true"] { background: var(--texte); }
 
-/* La liste des trajets. */
-.liste { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 10px; }
+/* La liste des trajets — compacte (2026-11-12) : trois ou quatre rangées par
+   fiche, « Modifier » à côté des états, note sur deux lignes au plus. */
+.liste { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; }
 .trajet {
-  background: var(--carte); border-radius: 12px; padding: 12px;
+  background: var(--carte); border-radius: 10px; padding: 7px 9px 8px;
   border: 2px solid transparent;
 }
 .trajet.choisi { border-color: var(--bleu); }
-.trajet .haut { display: flex; align-items: baseline; gap: 8px; }
-.trajet .nom { border: 0; background: none; padding: 0; text-align: left; font-weight: 600; flex: 1; font-size: 1.02em; }
-.trajet .km { color: var(--texte-2); font-size: 0.9em; white-space: nowrap; }
-.trajet .note { white-space: pre-wrap; color: var(--texte-2); font-size: 0.92em; }
-.trajet .segmente { margin-top: 10px; }
-.trajet .actions { display: flex; gap: 8px; margin-top: 8px; }
-.trajet .actions .bouton { padding: 6px 10px; font-size: 0.92em; }
+.trajet .haut { display: flex; align-items: baseline; gap: 7px; }
+.trajet .nom { border: 0; background: none; padding: 0; text-align: left; font-weight: 600; flex: 1; min-width: 0; }
+.trajet .infos-trajet { font-size: 0.85em; margin-top: 1px; }
+.trajet .auto {
+  display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 6px;
+  background: var(--bleu-doux); color: var(--bleu); font-weight: 600; font-size: 0.9em; cursor: help;
+}
+.trajet .note {
+  white-space: pre-wrap; color: var(--texte-2); font-size: 0.85em; margin-top: 2px;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
+}
+.trajet.choisi .note { display: block; }
+.trajet .rangee-etats { display: flex; gap: 6px; margin-top: 6px; }
+.trajet .rangee-etats .segmente { flex: 1; min-width: 0; }
+.trajet .rangee-etats .segmente button { padding: 4px 2px; font-size: 0.88em; }
+.trajet .rangee-etats .modifier { padding: 4px 10px; font-size: 0.88em; border-radius: 10px; flex: none; }
 .pastille { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: none; transform: translateY(-1px); }
 
 .vide { background: var(--carte); border-radius: 12px; padding: 14px; color: var(--texte-2); margin-top: 14px; }
