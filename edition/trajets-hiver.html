@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!--
+  Page d'ÉDITION des « trajets d'hiver » de CycloApp : les pistes et passerelles
+  entières qui ferment l'hiver, dessinées à la main, avec leur état (ouvert,
+  partiel, fermé). Jamais indexée (balise robots ci-dessous) et liée nulle part
+  sur le site. Mais ce n'est PAS le secret de son adresse qui la protège : sans
+  la clé (passée après le # du lien, voir trajets-hiver.js), elle ne peut rien
+  écrire. Côté base : migration 0038 du dépôt de l'app.
+
+  Pas de fichier robots.txt pour elle, exprès : un « Disallow » afficherait le
+  chemin à tout le monde, et empêcherait les robots de lire le « noindex ».
+
+  La politique de sécurité (Content-Security-Policy) n'autorise que les scripts
+  de CE site : même si un nom de trajet contenait du code, il ne s'exécuterait
+  pas, et la clé rangée dans le navigateur ne pourrait partir nulle part ailleurs
+  que chez Supabase.
+-->
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.tile-cyclosm.openstreetmap.fr https://tile.openstreetmap.org; connect-src https://mytcxzitmwonqsofaejb.supabase.co; base-uri 'none'; form-action 'none'">
+<title>Trajets d'hiver · CycloApp (édition)</title>
+<link rel="icon" href="data:,">
+<!-- Leaflet 1.9.4 (licence BSD-2, voir vendor/leaflet-1.9.4/LICENSE), copié
+     ici plutôt que chargé d'un CDN : la page tient une clé d'écriture, elle ne
+     dépend d'aucun serveur de scripts tiers. Empreintes = celles publiées sur
+     leafletjs.com. -->
+<link rel="stylesheet" href="vendor/leaflet-1.9.4/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=">
+<link rel="stylesheet" href="trajets-hiver.css">
+</head>
+<body>
+<main id="panneau"></main>
+<div id="carte" role="application" aria-label="Carte des trajets d'hiver"></div>
+<div id="avis" role="status" aria-live="polite"></div>
+<script src="vendor/leaflet-1.9.4/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="></script>
+<script src="trajets-hiver.js"></script>
+</body>
+</html>

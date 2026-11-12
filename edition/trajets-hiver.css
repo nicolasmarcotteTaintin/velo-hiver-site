@@ -1,0 +1,168 @@
+/* Trajets d'hiver — page d'édition. Couleurs reprises de l'app (lib/theme.ts,
+   lib/reports.ts) pour que la page ressemble à ce que verront les usagers. */
+
+:root {
+  color-scheme: light;
+  --fond: #F2F2F7;
+  --carte: #FFFFFF;
+  --texte: #1c1c1e;
+  --texte-2: #6E6E73;
+  --trait: #D1D1D6;
+  --bleu: #0A66C2;
+  --bleu-doux: #E8F0FB;
+  --danger: #c0392b;
+  --ouvert: #27ae60;
+  --partiel: #f39c12;
+  --ferme: #c0392b;
+}
+
+html, body { height: 100%; margin: 0; }
+body {
+  display: flex;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--texte);
+  background: var(--fond);
+}
+
+#panneau {
+  width: 370px;
+  flex: none;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 16px 16px calc(24px + env(safe-area-inset-bottom));
+  border-right: 1px solid var(--trait);
+  background: var(--fond);
+}
+#carte { flex: 1; min-width: 0; }
+
+/* Téléphone : la carte en haut, le panneau dessous. */
+@media (max-width: 760px) {
+  body { flex-direction: column; height: 100dvh; }
+  #carte { order: -1; flex: none; height: 52dvh; }
+  #panneau { width: auto; flex: 1; border-right: 0; border-top: 1px solid var(--trait); padding-top: 12px; }
+}
+
+h1 { font-size: 1.35em; margin: 0 0 4px; }
+h2 { font-size: 1.15em; margin: 0; }
+h3 { font-size: 1em; margin: 18px 0 6px; }
+p { margin: 6px 0; }
+.discret { color: var(--texte-2); font-size: 0.92em; }
+
+button, select, input, textarea { font: inherit; color: var(--texte); }
+button { cursor: pointer; }
+button[disabled] { cursor: default; opacity: 0.5; }
+
+.bouton {
+  border: 1px solid var(--trait);
+  background: var(--carte);
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+.bouton:hover:not([disabled]) { border-color: #a9a9ae; }
+.bouton.primaire { background: var(--bleu); border-color: var(--bleu); color: #fff; font-weight: 600; }
+.bouton.primaire:hover:not([disabled]) { background: #08529c; }
+.bouton.danger { color: var(--danger); }
+.bouton.large { width: 100%; padding: 11px 14px; }
+.lien { border: 0; background: none; padding: 0; color: var(--bleu); font-weight: 600; }
+
+.entete { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.entete select { flex: 1; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--trait); background: var(--carte); }
+
+/* Les trois états, ou les deux outils : une rangée de boutons collés. */
+.segmente { display: flex; border: 1px solid var(--trait); border-radius: 10px; overflow: hidden; background: var(--carte); }
+.segmente button {
+  flex: 1; border: 0; border-left: 1px solid var(--trait); background: none;
+  padding: 8px 6px; font-size: 0.95em;
+}
+.segmente button:first-child { border-left: 0; }
+.segmente button[aria-pressed="true"] { color: #fff; font-weight: 600; }
+.segmente button[data-etat="ouvert"][aria-pressed="true"] { background: var(--ouvert); }
+.segmente button[data-etat="partiel"][aria-pressed="true"] { background: var(--partiel); }
+.segmente button[data-etat="ferme"][aria-pressed="true"] { background: var(--ferme); }
+.segmente button[data-outil][aria-pressed="true"] { background: var(--texte); }
+
+/* La liste des trajets. */
+.liste { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 10px; }
+.trajet {
+  background: var(--carte); border-radius: 12px; padding: 12px;
+  border: 2px solid transparent;
+}
+.trajet.choisi { border-color: var(--bleu); }
+.trajet .haut { display: flex; align-items: baseline; gap: 8px; }
+.trajet .nom { border: 0; background: none; padding: 0; text-align: left; font-weight: 600; flex: 1; font-size: 1.02em; }
+.trajet .km { color: var(--texte-2); font-size: 0.9em; white-space: nowrap; }
+.trajet .note { white-space: pre-wrap; color: var(--texte-2); font-size: 0.92em; }
+.trajet .segmente { margin-top: 10px; }
+.trajet .actions { display: flex; gap: 8px; margin-top: 8px; }
+.trajet .actions .bouton { padding: 6px 10px; font-size: 0.92em; }
+.pastille { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: none; transform: translateY(-1px); }
+
+.vide { background: var(--carte); border-radius: 12px; padding: 14px; color: var(--texte-2); margin-top: 14px; }
+
+.legende { margin-top: 18px; font-size: 0.9em; color: var(--texte-2); display: grid; gap: 4px; }
+.legende span.trait { display: inline-block; width: 26px; height: 5px; border-radius: 3px; vertical-align: middle; margin-right: 8px; }
+.trait.ferme { background: repeating-linear-gradient(90deg, var(--ferme) 0 9px, transparent 9px 14px); }
+
+/* Le formulaire d'édition. */
+label.champ { display: block; margin-top: 12px; font-weight: 600; font-size: 0.95em; }
+label.champ input, label.champ textarea {
+  display: block; width: 100%; box-sizing: border-box; margin-top: 4px;
+  padding: 9px 11px; border: 1px solid var(--trait); border-radius: 10px; background: var(--carte);
+  font-weight: 400;
+}
+label.champ textarea { min-height: 60px; resize: vertical; }
+label.champ input:focus, label.champ textarea:focus { outline: 2px solid var(--bleu); outline-offset: 0; border-color: var(--bleu); }
+.compteur { float: right; font-weight: 400; color: var(--texte-2); font-size: 0.88em; }
+.sous-titre { font-weight: 600; font-size: 0.95em; margin: 12px 0 4px; }
+.aide { background: var(--bleu-doux); border-radius: 10px; padding: 10px 12px; font-size: 0.9em; margin: 8px 0; }
+.aide p { margin: 0 0 4px; }
+.aide p:last-child { margin: 0; }
+.outils { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.outils .bouton { padding: 6px 10px; font-size: 0.92em; }
+.infos { margin-top: 8px; font-variant-numeric: tabular-nums; }
+.actions-edition { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; margin-top: 18px; }
+.message { min-height: 1.3em; margin-top: 10px; font-weight: 600; }
+.message.ko { color: var(--danger); }
+
+/* Écran « clé ». */
+.ecran-cle { max-width: 420px; }
+.ecran-cle form { display: flex; gap: 8px; margin-top: 12px; }
+.ecran-cle input { flex: 1; min-width: 0; padding: 9px 11px; border: 1px solid var(--trait); border-radius: 10px; }
+
+/* Les points du dessin, sur la carte. Carré = pointe (on y repart en ligne
+   droite) ; rond = arrondi (la courbe y passe sans cassure). */
+.pt {
+  box-sizing: border-box; background: #fff; border: 3px solid var(--texte);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+.pt-ligne { border-radius: 3px; }
+.pt-courbe { border-radius: 50%; }
+.pt-debut { background: var(--texte); }
+/* Le bout qui s'allonge quand on touche la carte. */
+.pt-fin { border-color: var(--bleu); background: var(--bleu); }
+.pt-milieu {
+  box-sizing: border-box; border-radius: 50%; background: rgba(255, 255, 255, 0.9);
+  border: 2px solid var(--texte); opacity: 0.75;
+}
+.pt-milieu:hover { opacity: 1; }
+/* Pendant qu'on glisse un point, les petits ronds intermédiaires (qui ne
+   suivent pas) sont cachés. */
+.glisse .pt-milieu { display: none; }
+.leaflet-container.edition { cursor: crosshair; }
+
+/* Menu d'un point (bulle Leaflet). */
+.menu-point { display: grid; gap: 6px; min-width: 190px; }
+.menu-point .titre { font-weight: 600; }
+.menu-point .segmente button { padding: 6px 4px; }
+
+/* Message bref en bas de l'écran. */
+#avis {
+  position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+  background: rgba(28, 28, 30, 0.92); color: #fff; padding: 9px 16px; border-radius: 12px;
+  font-size: 0.95em; z-index: 2000; pointer-events: none; opacity: 0; transition: opacity 0.2s;
+  max-width: calc(100vw - 40px);
+}
+#avis.visible { opacity: 1; }
+#avis.ko { background: rgba(176, 38, 30, 0.95); }
