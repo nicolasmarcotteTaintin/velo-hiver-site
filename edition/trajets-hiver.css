@@ -84,6 +84,7 @@ button[disabled] { cursor: default; opacity: 0.5; }
 .segmente button[data-etat="partiel"][aria-pressed="true"] { background: var(--partiel); }
 .segmente button[data-etat="ferme"][aria-pressed="true"] { background: var(--ferme); }
 .segmente button[data-outil][aria-pressed="true"] { background: var(--texte); }
+.segmente button[data-outil="coupe"][aria-pressed="true"] { background: #8e8e93; }
 
 /* La liste des trajets — compacte (2026-11-12) : trois ou quatre rangées par
    fiche, « Modifier » à côté des états, note sur deux lignes au plus. */
@@ -116,6 +117,8 @@ button[disabled] { cursor: default; opacity: 0.5; }
 .legende { margin-top: 18px; font-size: 0.9em; color: var(--texte-2); display: grid; gap: 4px; }
 .legende span.trait { display: inline-block; width: 26px; height: 5px; border-radius: 3px; vertical-align: middle; margin-right: 8px; }
 .trait.ferme { background: repeating-linear-gradient(90deg, var(--ferme) 0 9px, transparent 9px 14px); }
+/* Tronçon coupé (0041) : des ronds gris, comme sur la carte. */
+.trait.coupe { background: radial-gradient(circle, #8e8e93 2.5px, transparent 3px) 0 50% / 9px 9px repeat-x; }
 
 /* Le formulaire d'édition. */
 label.champ { display: block; margin-top: 12px; font-weight: 600; font-size: 0.95em; }

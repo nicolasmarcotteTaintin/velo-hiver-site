@@ -147,36 +147,55 @@
   //     tangente pointe alors droit vers le point suivant. Entre deux pointes,
   //     les quatre points sont alignés : c'est un segment droit, qu'on ne
   //     découpe pas.
+  //   • Tronçon COUPÉ (migration 0041) : un point du dessin marqué « coupe »
+  //     coupe le tronçon qui part de lui. Chaque point de la ligne calculée
+  //     sur ce tronçon reçoit la même marque (le tronçon qui part de LUI est
+  //     coupé) : l'app et la page le dessinent en pointillé.
   function calculerLigne(controle, pas) {
     var n = controle.length;
     if (n === 0) return { points: [], milieux: [] };
     var proj = projecteur(controle[0].latitude);
     var P = controle.map(proj.versXY);
     var sortie = [P[0]];
+    // coupes[j] : le tronçon qui part du point j de la sortie est coupé.
+    var coupes = [false];
     var milieux = [];
     for (var i = 0; i < n - 1; i++) {
       var p1 = P[i];
       var p2 = P[i + 1];
+      var coupe = !!controle[i].coupe;
       var corde = Math.hypot(p2[0] - p1[0], p2[1] - p1[1]);
       if (corde < 0.01) {
         // Deux points confondus : rien à tracer entre eux.
         milieux.push(p1);
         continue;
       }
+      coupes[coupes.length - 1] = coupe; // le dernier point posé est p1
       var arrondi1 = i > 0 && controle[i].lisse;
       var arrondi2 = i + 2 < n && controle[i + 1].lisse;
       if (!arrondi1 && !arrondi2) {
         sortie.push(p2);
+        coupes.push(false);
         milieux.push([(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2]);
         continue;
       }
       var p0 = arrondi1 ? P[i - 1] : [2 * p1[0] - p2[0], 2 * p1[1] - p2[1]];
       var p3 = arrondi2 ? P[i + 2] : [2 * p2[0] - p1[0], 2 * p2[1] - p1[1]];
       var m = Math.min(60, Math.max(2, Math.ceil(corde / pas)));
-      for (var k = 1; k <= m; k++) sortie.push(k === m ? p2 : pointCatmullRom(p0, p1, p2, p3, k / m));
+      for (var k = 1; k <= m; k++) {
+        sortie.push(k === m ? p2 : pointCatmullRom(p0, p1, p2, p3, k / m));
+        coupes.push(k === m ? false : coupe);
+      }
       milieux.push(pointCatmullRom(p0, p1, p2, p3, 0.5));
     }
-    return { points: sortie.map(proj.versPoint), milieux: milieux.map(proj.versPoint) };
+    return {
+      points: sortie.map(function (xy, j) {
+        var p = proj.versPoint(xy);
+        if (coupes[j]) p.coupe = true;
+        return p;
+      }),
+      milieux: milieux.map(proj.versPoint),
+    };
   }
 
   // La ligne finale : on espace les points tant qu'il y en a trop pour la base.
@@ -194,7 +213,9 @@
     return Math.round(x * 1e6) / 1e6;
   }
   function pointPropre(p) {
-    return { latitude: arrondi6(p.latitude), longitude: arrondi6(p.longitude) };
+    var q = { latitude: arrondi6(p.latitude), longitude: arrondi6(p.longitude) };
+    if (p.coupe) q.coupe = true; // tronçon coupé (0041) : seulement s'il vaut vrai
+    return q;
   }
 
   // ------------------------------------------------------------------
@@ -398,7 +419,9 @@
   var coucheTrajets = L.layerGroup().addTo(carte);
   var coucheEdition = L.layerGroup().addTo(carte);
   // Ce que l'éditeur met à jour pendant qu'on glisse un point.
-  var vueEdition = { halo: null, ligne: null };
+  // Le trait du trajet en cours d'édition : un groupe (halo et tronçons),
+  // redessiné à chaque mouvement.
+  var vueEdition = { groupe: null };
 
   var tactile = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
   var TAILLE_POINT = tactile ? 26 : 18;
@@ -418,6 +441,55 @@
     carte.fitBounds(L.latLngBounds(points.map(versLatLng)), { padding: [40, 40], maxZoom: 17 });
   }
 
+  // Une ligne → ses tronçons : des suites de points dont les liaisons sont
+  // toutes coupées (pointillé, 0041) ou toutes normales. Chaque suite garde
+  // ses deux bouts, pour que les traits se touchent.
+  function troncons(points) {
+    var res = [];
+    for (var j = 0; j < points.length - 1; j++) {
+      var coupe = !!points[j].coupe;
+      var dernier = res[res.length - 1];
+      if (!dernier || dernier.coupe !== coupe) {
+        dernier = { coupe: coupe, ll: [versLatLng(points[j])] };
+        res.push(dernier);
+      }
+      dernier.ll.push(versLatLng(points[j + 1]));
+    }
+    return res;
+  }
+
+  // Un tronçon coupé : des ronds gris (tirets presque nuls à bouts arrondis),
+  // posés sur des ronds blancs plus gros, alignés sur le même motif.
+  var POINTILLE = '1 11';
+  var GRIS_COUPE = '#8e8e93';
+
+  // Dessine une ligne (halo blanc, puis le trait) dans un groupe Leaflet. Rend
+  // les traits du dessus, pour y accrocher infobulle et clic.
+  //   o = { etat, epaisseur, halo, opacite, opaciteHalo, interactif }
+  function tracerLigne(points, groupe, o) {
+    var traits = [];
+    troncons(points).forEach(function (t) {
+      L.polyline(t.ll, {
+        color: '#ffffff',
+        weight: o.halo,
+        opacity: o.opaciteHalo,
+        dashArray: t.coupe ? POINTILLE : null,
+        lineCap: 'round',
+        interactive: false,
+      }).addTo(groupe);
+      var trait = L.polyline(t.ll, {
+        color: t.coupe ? GRIS_COUPE : infoEtat(o.etat).couleur,
+        weight: o.epaisseur,
+        opacity: o.opacite,
+        dashArray: t.coupe ? POINTILLE : o.etat === 'ferme' ? '10 8' : null,
+        lineCap: 'round',
+        interactive: !!o.interactif,
+      }).addTo(groupe);
+      traits.push(trait);
+    });
+    return traits;
+  }
+
   // Les trajets enregistrés de la ville. Pendant une édition, ils restent
   // visibles mais pâles, et ne réagissent plus au toucher.
   function dessinerTrajets() {
@@ -425,30 +497,25 @@
     var pale = !!S.edition;
     S.trajets.forEach(function (t) {
       if (S.edition && S.edition.id === t.id) return; // l'éditeur le dessine
-      var ll = (t.points || []).map(versLatLng);
-      if (ll.length < 2) return;
+      if (!t.points || t.points.length < 2) return;
       var choisi = t.id === S.choisi && !pale;
-      L.polyline(ll, {
-        color: '#ffffff',
-        weight: choisi ? 13 : 9,
-        opacity: pale ? 0.5 : 0.95,
-        interactive: false,
-      }).addTo(coucheTrajets);
-      var ligne = L.polyline(ll, {
-        color: infoEtat(t.etat).couleur,
-        weight: choisi ? 7 : 5,
-        opacity: pale ? 0.4 : 1,
-        dashArray: t.etat === 'ferme' ? '10 8' : null,
-        interactive: !pale,
+      var traits = tracerLigne(t.points, coucheTrajets, {
+        etat: t.etat,
+        epaisseur: choisi ? 7 : 5,
+        halo: choisi ? 13 : 9,
+        opacite: pale ? 0.4 : 1,
+        opaciteHalo: pale ? 0.5 : 0.95,
+        interactif: !pale,
       });
       if (!pale) {
-        ligne.bindTooltip(el('span', {}, [t.nom]), { sticky: true });
-        ligne.on('click', function (e) {
-          L.DomEvent.stopPropagation(e);
-          choisir(t.id, false);
+        traits.forEach(function (ligne) {
+          ligne.bindTooltip(el('span', {}, [t.nom]), { sticky: true });
+          ligne.on('click', function (e) {
+            L.DomEvent.stopPropagation(e);
+            choisir(t.id, false);
+          });
         });
       }
-      ligne.addTo(coucheTrajets);
     });
   }
 
@@ -474,6 +541,14 @@
     return { latitude: latlng.lat, longitude: latlng.lng, lisse: S.outil === 'courbe' };
   }
 
+  // Un point ajouté entre les points i et i + 1 : s'il tombe dans un tronçon
+  // coupé, les deux moitiés restent coupées.
+  function pointAuMilieu(i, latlng) {
+    var p = nouveauPoint(latlng);
+    if (S.edition.controle[i].coupe) p.coupe = true;
+    return p;
+  }
+
   // À appeler AVANT chaque modification du dessin : c'est ce que « Annuler »
   // rétablit.
   function memoriser() {
@@ -493,11 +568,21 @@
 
   // Les deux traits seulement (pendant un glissement : les repères, eux,
   // ne bougent pas — le repère glissé suit le doigt tout seul).
+  function tracerEdition(r) {
+    vueEdition.groupe.clearLayers();
+    tracerLigne(r.points, vueEdition.groupe, {
+      etat: S.edition.etat,
+      epaisseur: 5,
+      halo: 11,
+      opacite: 1,
+      opaciteHalo: 0.95,
+      interactif: false,
+    });
+  }
+
   function majLignes() {
     var r = ligneDuDessin(S.edition.controle);
-    var ll = r.points.map(versLatLng);
-    vueEdition.halo.setLatLngs(ll);
-    vueEdition.ligne.setLatLngs(ll);
+    tracerEdition(r);
     majInfosTrace(r);
     return r;
   }
@@ -508,17 +593,9 @@
     if (!ed) return;
     var n = ed.controle.length;
     var r = ligneDuDessin(ed.controle);
-    var ll = r.points.map(versLatLng);
 
-    vueEdition.halo = L.polyline(ll, { color: '#ffffff', weight: 11, opacity: 0.95, interactive: false }).addTo(
-      coucheEdition
-    );
-    vueEdition.ligne = L.polyline(ll, {
-      color: infoEtat(ed.etat).couleur,
-      weight: 5,
-      dashArray: ed.etat === 'ferme' ? '10 8' : null,
-      interactive: false,
-    }).addTo(coucheEdition);
+    vueEdition.groupe = L.layerGroup().addTo(coucheEdition);
+    tracerEdition(r);
 
     // Les petits ronds entre deux points : les toucher ou les glisser ajoute
     // un point à cet endroit.
@@ -532,7 +609,7 @@
       });
       g.on('dragstart', function () {
         memoriser();
-        ed.controle.splice(i + 1, 0, nouveauPoint(g.getLatLng()));
+        ed.controle.splice(i + 1, 0, pointAuMilieu(i, g.getLatLng()));
         carte.getContainer().classList.add('glisse');
       });
       g.on('drag', function () {
@@ -545,7 +622,7 @@
       g.on('click', function () {
         if (ed.controle.length >= MAX_CONTROLE) return avis(MAX_CONTROLE + ' points au plus.', true);
         memoriser();
-        ed.controle.splice(i + 1, 0, nouveauPoint(g.getLatLng()));
+        ed.controle.splice(i + 1, 0, pointAuMilieu(i, g.getLatLng()));
         dessinerEdition();
       });
       g.addTo(coucheEdition);
@@ -589,7 +666,8 @@
     dessinerEdition();
   }
 
-  // Le menu d'un point : pointe ou arrondi, ou le retirer.
+  // Le menu d'un point : pointe ou arrondi, tronçon suivant continu ou coupé,
+  // ou le retirer.
   function ouvrirMenuPoint(i, latlng) {
     var ed = S.edition;
     var n = ed.controle.length;
@@ -600,6 +678,18 @@
         if (bout || p.lisse === lisse) return;
         memoriser();
         p.lisse = lisse;
+        carte.closePopup();
+        dessinerEdition();
+      };
+    }
+    // Le tronçon qui part de ce point (vers le point suivant) : continu, ou
+    // coupé — chantier, passage arraché, détour (pointillé gris, 0041).
+    function troncon(coupe) {
+      return function () {
+        if (!!p.coupe === coupe) return;
+        memoriser();
+        if (coupe) p.coupe = true;
+        else delete p.coupe;
         carte.closePopup();
         dessinerEdition();
       };
@@ -616,6 +706,25 @@
               '● Arrondi',
             ]),
           ]),
+      i < n - 1 ? el('div', { class: 'sous-titre' }, ['Jusqu’au point suivant']) : null,
+      i < n - 1
+        ? el('div', { class: 'segmente' }, [
+            el('button', { type: 'button', 'data-outil': 'continu', 'aria-pressed': String(!p.coupe), onclick: troncon(false) }, [
+              '━ Continu',
+            ]),
+            el(
+              'button',
+              {
+                type: 'button',
+                'data-outil': 'coupe',
+                'aria-pressed': String(!!p.coupe),
+                title: 'Chantier, passage arraché, détour : dessiné en pointillé gris',
+                onclick: troncon(true),
+              },
+              ['┅ Coupé']
+            ),
+          ])
+        : null,
       el(
         'button',
         {
@@ -864,6 +973,7 @@
         el('div', {}, [el('span', { class: 'trait', style: 'background:' + ETATS.ouvert.couleur }), 'Ouvert : praticable, déneigé']),
         el('div', {}, [el('span', { class: 'trait', style: 'background:' + ETATS.partiel.couleur }), 'Partiel : ouvert en partie ou mal entretenu']),
         el('div', {}, [el('span', { class: 'trait ferme' }), 'Fermé : ne pas l’emprunter']),
+        el('div', {}, [el('span', { class: 'trait coupe' }), 'Pointillé gris : passage coupé (chantier, détour)']),
       ])
     );
   }
@@ -959,6 +1069,16 @@
         title: 'Pour prolonger le tracé par l’autre bout',
         onclick: function () {
           memoriser();
+          // « coupe » marque le tronçon qui PART d'un point : à l'envers, le
+          // tronçon i → i+1 part de l'ancien point i+1. On décale donc les
+          // marques d'un cran avant d'inverser.
+          var coupes = ed.controle.map(function (p) {
+            return !!p.coupe;
+          });
+          ed.controle.forEach(function (p, i) {
+            if (i > 0 && coupes[i - 1]) p.coupe = true;
+            else delete p.coupe;
+          });
           ed.controle.reverse();
           carte.closePopup();
           dessinerEdition();
@@ -1002,7 +1122,7 @@
         el('p', {}, ['Touchez la carte : chaque toucher ajoute un point au bout BLEU du tracé.']),
         el('p', {}, ['« Ligne droite » y va tout droit ; « Courbe » arrondit le tracé en passant par les points.']),
         el('p', {}, [
-          'Glissez un point pour le déplacer, touchez-le pour le changer ou le retirer. Glissez un petit rond (entre deux points) pour en ajouter un.',
+          'Glissez un point pour le déplacer, touchez-le pour le changer, le retirer ou couper le tronçon qui le suit (chantier, détour : pointillé gris). Glissez un petit rond (entre deux points) pour en ajouter un.',
         ]),
       ])
     );
@@ -1122,9 +1242,10 @@
         nom: nom,
         etat: ed.etat,
         note: ed.note.trim() || null,
-        controle: ed.controle.map(function (p) {
-          var q = pointPropre(p);
+        controle: ed.controle.map(function (p, i) {
+          var q = pointPropre(p); // garde « coupe » s'il vaut vrai (0041)
           q.lisse = !!p.lisse;
+          if (i === ed.controle.length - 1) delete q.coupe; // aucun tronçon ne part du dernier point
           return q;
         }),
         points: r.points.map(pointPropre),
